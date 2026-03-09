@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketScanner ✈️ 機票價格追蹤</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #f59e0b;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 3rem 1rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* Search Card */
+        .search-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background: #d97706;
+        }
+
+        /* Results Section */
+        .results-section {
+            margin-top: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Ticket Card */
+        .ticket-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .ticket-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .ticket-info h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .ticket-route {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .ticket-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .ticket-price {
+            text-align: right;
+        }
+
+        .price {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .price-original {
+            text-decoration: line-through;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .price-change {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        .price-down {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .price-up {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.75rem;
+            }
+            
+            .ticket-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .ticket-price {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>✈️ TicketScanner</h1>
+        <p>智能機票價格追蹤，幫你慳到盡</p>
+    </header>
+
+    <div class="container">
+        <!-- Search Section -->
+        <div class="search-card">
+            <div class="search-grid">
+                <div class="form-group">
+                    <label>出發地</label>
+                    <input type="text" placeholder="例如：香港 HKG" id="origin">
+                </div>
+                <div class="form-group">
+                    <label>目的地</label>
+                    <input type="text" placeholder="例如：東京 NRT" id="destination">
+                </div>
+                <div class="form-group">
+                    <label>出發日期</label>
+                    <input type="date" id="departDate">
+                </div>
+                <div class="form-group">
+                    <label>回程日期</label>
+                    <input type="date" id="returnDate">
+                </div>
+                <div class="form-group">
+                    <label>乘客</label>
+                    <select id="passengers">
+                        <option>1 成人</option>
+                        <option>2 成人</option>
+                        <option>2 成人, 1 小童</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn" onclick="searchFlights()">
+                🔍 搜尋機票
+            </button>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在搜尋最抵機票...</p>
+        </div>
+
+        <!-- Results -->
+        <div class="results-section" id="results" style="display: none;">
+            <h2 class="section-title">📊 搜尋結果</h2>
+            
+            <!-- Sample Ticket Card -->
+            <div class="ticket-card">
+                <div class="ticket-info">
+                    <h3>國泰航空 Cathay Pacific</h3>
+                    <div class="ticket-route">香港 HKG → 東京 NRT</div>
+                    <div class="ticket-meta">
+                        <span>🕐 08:30 - 13:45</span>
+                        <span>📅 2025-04-15</span>
+                        <span>⏱️ 直飛 4小時15分</span>
+                    </div>
+                </div>
+                <div class="ticket-price">
+                    <div class="price-original">HK$ 5,680</div>
+                    <div class="price">HK$ 3,280</div>
+                    <span class="price-change price-down">↓ 42% 慳 HK$ 2,400</span>
+                </div>
+            </div>
+
+            <div class="ticket-card">
+                <div class="ticket-info">
+                    <h3>香港航空 Hong Kong Airlines</h3>
+                    <div class="ticket-route">香港 HKG → 東京 NRT</div>
+                    <div class="ticket-meta">
+                        <span>🕐 11:20 - 16:50</span>
+                        <span>📅 2025-04-15</span>
+                        <span>⏱️ 直飛 4小時30分</span>
+                    </div>
+                </div>
+                <div class="ticket-price">
+                    <div class="price">HK$ 2,890</div>
+                    <span class="price-change price-down">↓ 推介</span>
+                </div>
+            </div>
+
+            <div class="ticket-card">
+                <div class="ticket-info">
+                    <h3>樂桃航空 Peach Aviation</h3>
+                    <div class="ticket-route">香港 HKG → 東京 NRT</div>
+                    <div class="ticket-meta">
+                        <span>🕐 06:00 - 11:20</span>
+                        <span>📅 2025-04-15</span>
+                        <span>⏱️ 直飛 4小時20分</span>
+                    </div>
+                </div>
+                <div class="ticket-price">
+                    <div class="price">HK$ 1,580</div>
+                    <span class="price-change">經濟艙</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🔔</div>
+                <h3>價格提醒</h3>
+                <p>設定目標價格，當機票跌到你想要嘅價位即刻通知你</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3>價格走勢</h3>
+                <p>睇埋過去價格走勢，幫你決定幾時買最抵</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">✈️</div>
+                <h3>多平台比較</h3>
+                <p>一次過比較國泰、港航、HK Express、廉航等多間航空公司</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 TicketScanner | 幫你慳錢去旅行 🌏</p>
+    </footer>
+
+    <script>
+        // Set default dates
+        const today = new Date();
+        const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+        
+        document.getElementById('departDate').value = nextWeek.toISOString().split('T')[0];
+        document.getElementById('returnDate').value = new Date(nextWeek.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+        function searchFlights() {
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            
+            // Show loading
+            loading.classList.add('active');
+            results.style.display = 'none';
+            
+            // Simulate search
+            setTimeout(() => {
+                loading.classList.remove('active');
+                results.style.display = 'block';
+                results.scrollIntoView({ behavior: 'smooth' });
+            }, 1500);
+        }
+
+        // Auto-fill sample data for demo
+        document.getElementById('origin').addEventListener('focus', function() {
+            if (!this.value) this.value = '香港 HKG';
+        });
+        
+        document.getElementById('destination').addEventListener('focus', function() {
+            if (!this.value) this.value = '東京 NRT';
+        });
+    </script>
+</body>
+</html>
